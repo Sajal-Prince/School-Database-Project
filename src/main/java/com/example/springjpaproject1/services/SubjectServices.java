@@ -8,7 +8,6 @@ import com.example.springjpaproject1.entities.SubjectEntities;
 import com.example.springjpaproject1.repositories.ProfessorRepositories;
 import com.example.springjpaproject1.repositories.StudentRepositories;
 import com.example.springjpaproject1.repositories.SubjectRepositories;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,15 +40,19 @@ public class SubjectServices {
     @Transactional
     public ResponseEntity<?> addSubject(SubjectDTO subjectDTO){
         SubjectEntities subject = convertSubDTOtoSubEntities(subjectDTO);
-        ProfessorEntities professorEntities = professorRepositories.findById(subjectDTO.getProfessorId()).orElseThrow();
-        professorEntities.addSubject(subject);
-
-        List<StudentEntities> studentEntities = studentRepositories.findAllById(subjectDTO.getStudentEntities());
-        for(StudentEntities students: studentEntities){
-            students.addSubjects(subject);
+        if(subject.getProfessor()!=null) {
+            ProfessorEntities professorEntities = professorRepositories.findById(subjectDTO.getProfessorId()).orElseThrow();
+            professorEntities.addSubject(subject);
         }
-        subjectRepositories.save(subject);
 
+        if(subject.getStudentEntities()!=null) {
+            List<StudentEntities> studentEntities = studentRepositories.findAllById(subjectDTO.getStudentEntities());
+            for (StudentEntities students : studentEntities) {
+                students.addSubjects(subject);
+            }
+        }
+
+        subjectRepositories.save(subject);
         return ResponseEntity.ok("The Subject was added.");
     }
 
@@ -61,7 +64,7 @@ public class SubjectServices {
         if(subjectEntities.getStudentEntities()!=null)
             subjectEntities.setStudentEntities(null);
         subjectRepositories.delete(subjectEntities);
-        return ResponseEntity.ok("The suject was deleted");
+        return ResponseEntity.ok("The subject was deleted");
     }
 
     public SubjectDTO convertSubEntityToSubDTO(SubjectEntities subjectEntities){

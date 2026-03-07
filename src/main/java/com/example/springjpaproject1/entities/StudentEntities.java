@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.sql.ast.tree.from.TableJoin;
 import org.w3c.dom.html.HTMLIsIndexElement;
 
 import java.util.ArrayList;
@@ -24,14 +25,19 @@ public class StudentEntities {
 
     private String name;
 
-    @ManyToMany(cascade = CascadeType.MERGE)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private List<ProfessorEntities> professorEntities;
 
-    @ManyToMany(cascade = CascadeType.MERGE)
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private List<SubjectEntities> subjectEntities;
 
     public void addSubjects(SubjectEntities subjectEntities){
+        if(this.subjectEntities == null)
+            this.subjectEntities = new ArrayList<>();
         this.subjectEntities.add(subjectEntities);
+
+        if(subjectEntities.getStudentEntities()==null)
+            subjectEntities.setStudentEntities(new ArrayList<>());
         subjectEntities.getStudentEntities().add(this);
     }
 

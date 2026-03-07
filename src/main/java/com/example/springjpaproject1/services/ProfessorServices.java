@@ -12,8 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfessorServices {
@@ -30,7 +31,7 @@ public class ProfessorServices {
     }
 
     public List<ProfessorDTO> getProfessors(){
-        return professorRepositories.findAll().stream().map(this::convertPEntitityToPDTO).toList();
+        return professorRepositories.findAll().stream().map(this::convertPEntitityToPDTO).collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Transactional
@@ -65,9 +66,9 @@ public class ProfessorServices {
         ProfessorEntities professorEntities = new ProfessorEntities();
         professorEntities.setName(professorDTO.getName());
         if(professorDTO.getStudentEntities() != null)
-            professorEntities.setStudentEntities(professorDTO.getStudentEntities().stream().map(id -> admissionRepositories.findById(id).orElseThrow().getStudentEntities()).toList());
+            professorEntities.setStudentEntities(professorDTO.getStudentEntities().stream().map(id -> admissionRepositories.findById(id).orElseThrow().getStudentEntities()).collect(Collectors.toCollection(ArrayList::new)));
         if(professorDTO.getSubjectEntities() != null)
-            professorEntities.setSubjectEntities(professorDTO.getSubjectEntities().stream().map(id -> subjectRepositories.findById(id).orElseThrow()).toList());
+            professorEntities.setSubjectEntities(professorDTO.getSubjectEntities().stream().map(id -> subjectRepositories.findById(id).orElseThrow()).collect(Collectors.toCollection(ArrayList::new)));
         return professorEntities;
     }
 
@@ -75,8 +76,8 @@ public class ProfessorServices {
         ProfessorDTO professorDTO = new ProfessorDTO();
         professorDTO.setId(professorEntities.getId());
         professorDTO.setName(professorEntities.getName());
-        professorDTO.setStudentEntities(professorEntities.getStudentEntities().stream().map(StudentEntities::getId).toList());
-        professorDTO.setSubjectEntities(professorEntities.getSubjectEntities().stream().map(SubjectEntities::getId).toList());
+        professorDTO.setStudentEntities(professorEntities.getStudentEntities().stream().map(StudentEntities::getId).collect(Collectors.toCollection(ArrayList::new)));
+        professorDTO.setSubjectEntities(professorEntities.getSubjectEntities().stream().map(SubjectEntities::getId).collect(Collectors.toCollection(ArrayList::new)));
         return professorDTO;
     }
 }

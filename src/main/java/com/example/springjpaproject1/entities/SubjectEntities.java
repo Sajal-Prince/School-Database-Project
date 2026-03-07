@@ -27,6 +27,6 @@ public class SubjectEntities {
     @JoinColumn(name = "professor_id")
     private ProfessorEntities professor;
 
-    @ManyToMany(mappedBy = "subjectEntities",cascade = CascadeType.MERGE)
+    @ManyToMany(mappedBy = "subjectEntities")
     private List<StudentEntities> studentEntities;
 }

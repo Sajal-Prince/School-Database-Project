@@ -32,8 +32,8 @@ public class StudentServices {
     }
 
     @Transactional
-    public ResponseEntity<?> addStudent(StudentDTO studentDTO){
-        return convertStudentDTOToEntities(studentDTO);
+    public void addStudent(StudentDTO studentDTO){
+        convertStudentDTOToEntities(studentDTO);
     }
 
     @Transactional
@@ -65,14 +65,15 @@ public class StudentServices {
         student.setId(admissionRecord.getId());
         student.setFees(admissionRecord.getFees());
         student.setName(admissionRecord.getStudentEntities().getName());
-        student.setProfessorEntities(admissionRecord.getStudentEntities().getProfessorEntities().stream().map(ProfessorEntities::getId).toList());
-        student.setSubjectEntities(admissionRecord.getStudentEntities().getSubjectEntities().stream().map(SubjectEntities::getId).toList());
+        student.setProfessorEntities(admissionRecord.getStudentEntities().getProfessorEntities().stream().map(ProfessorEntities::getId).collect(Collectors.toCollection(ArrayList::new)));
+        student.setSubjectEntities(admissionRecord.getStudentEntities().getSubjectEntities().stream().map(SubjectEntities::getId).collect(Collectors.toCollection(ArrayList::new)));
+
 
         return student;
     }
 
     @Transactional
-    public ResponseEntity<?> convertStudentDTOToEntities(StudentDTO studentDTO){
+    public void convertStudentDTOToEntities(StudentDTO studentDTO){
         AdmissionRecord admissionRecord = new AdmissionRecord();
         StudentEntities studentEntities = new StudentEntities();
         studentEntities.setName(studentDTO.getName());
@@ -87,7 +88,7 @@ public class StudentServices {
         admissionRecord.setStudentEntities(studentEntities);
 
         admissionRepositories.save(admissionRecord);
-        return ResponseEntity.ok("You data was saved");
+        ResponseEntity.ok("You data was saved");
     }
 
 }
