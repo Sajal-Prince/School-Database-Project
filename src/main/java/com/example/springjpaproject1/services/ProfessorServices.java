@@ -20,12 +20,10 @@ import java.util.stream.Collectors;
 public class ProfessorServices {
     private final ProfessorRepositories professorRepositories;
     private final AdmissionRepositories admissionRepositories;
-    private final StudentRepositories studentRepositories;
     private final SubjectRepositories subjectRepositories;
 
-    public ProfessorServices(ProfessorRepositories professorRepositories, StudentRepositories studentRepositories, AdmissionRepositories admissionRepositories, SubjectRepositories subjectRepositories){
+    public ProfessorServices(ProfessorRepositories professorRepositories, AdmissionRepositories admissionRepositories, SubjectRepositories subjectRepositories){
         this.professorRepositories = professorRepositories;
-        this.studentRepositories = studentRepositories;
         this.admissionRepositories = admissionRepositories;
         this.subjectRepositories = subjectRepositories;
     }

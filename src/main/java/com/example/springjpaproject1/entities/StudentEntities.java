@@ -6,8 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.sql.ast.tree.from.TableJoin;
-import org.w3c.dom.html.HTMLIsIndexElement;
 
 import java.util.ArrayList;
 import java.util.List;
