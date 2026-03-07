@@ -59,23 +59,32 @@ public class SubjectServices {
     @Transactional
     public ResponseEntity<?> deleteSubjectById(Long id) {
         SubjectEntities subjectEntities = subjectRepositories.findById(id).orElseThrow();
-        if(subjectEntities.getProfessor()!=null)
+        if(subjectEntities.getProfessor()!=null) {
+            subjectEntities.getProfessor().getSubjectEntities().remove(subjectEntities);
             subjectEntities.setProfessor(null);
-        if(subjectEntities.getStudentEntities()!=null)
+        }
+        if(subjectEntities.getStudentEntities()!=null) {
+            for (StudentEntities student : subjectEntities.getStudentEntities())
+                student.getSubjectEntities().remove(subjectEntities);
             subjectEntities.setStudentEntities(null);
+        }
         subjectRepositories.delete(subjectEntities);
         return ResponseEntity.ok("The subject was deleted");
     }
 
+    @Transactional
     public SubjectDTO convertSubEntityToSubDTO(SubjectEntities subjectEntities){
         SubjectDTO subjectDTO = new SubjectDTO();
         subjectDTO.setId(subjectEntities.getId());
         subjectDTO.setName(subjectEntities.getName());
-        subjectDTO.setProfessorId(subjectEntities.getProfessor().getId());
-        subjectDTO.setStudentEntities(subjectEntities.getStudentEntities().stream().map(StudentEntities::getId).collect(Collectors.toCollection(ArrayList::new)));
+        if(subjectEntities.getProfessor() != null)
+            subjectDTO.setProfessorId(subjectEntities.getProfessor().getId());
+        if(subjectEntities.getStudentEntities() != null)
+            subjectDTO.setStudentEntities(subjectEntities.getStudentEntities().stream().map(StudentEntities::getId).collect(Collectors.toCollection(ArrayList::new)));
         return subjectDTO;
     }
 
+    @Transactional
     public SubjectEntities convertSubDTOtoSubEntities(SubjectDTO subjectDTO){
         SubjectEntities subjectEntities = new SubjectEntities();
         subjectEntities.setId(subjectDTO.getId());

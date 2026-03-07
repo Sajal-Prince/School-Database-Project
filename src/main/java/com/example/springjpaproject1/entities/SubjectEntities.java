@@ -26,4 +26,9 @@ public class SubjectEntities {
 
     @ManyToMany(mappedBy = "subjectEntities")
     private List<StudentEntities> studentEntities;
+
+    public void addProfessor(ProfessorEntities professorEntities){
+        this.setProfessor(professorEntities);
+        professorEntities.getSubjectEntities().add(this);
+    }
 }

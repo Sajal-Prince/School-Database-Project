@@ -6,7 +6,6 @@ import com.example.springjpaproject1.entities.StudentEntities;
 import com.example.springjpaproject1.entities.SubjectEntities;
 import com.example.springjpaproject1.repositories.AdmissionRepositories;
 import com.example.springjpaproject1.repositories.ProfessorRepositories;
-import com.example.springjpaproject1.repositories.StudentRepositories;
 import com.example.springjpaproject1.repositories.SubjectRepositories;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,12 +21,14 @@ public class ProfessorServices {
     private final AdmissionRepositories admissionRepositories;
     private final SubjectRepositories subjectRepositories;
 
+
     public ProfessorServices(ProfessorRepositories professorRepositories, AdmissionRepositories admissionRepositories, SubjectRepositories subjectRepositories){
         this.professorRepositories = professorRepositories;
         this.admissionRepositories = admissionRepositories;
         this.subjectRepositories = subjectRepositories;
     }
 
+    @Transactional
     public List<ProfessorDTO> getProfessors(){
         return professorRepositories.findAll().stream().map(this::convertPEntitityToPDTO).collect(Collectors.toCollection(ArrayList::new));
     }
@@ -35,10 +36,20 @@ public class ProfessorServices {
     @Transactional
     public ResponseEntity<?> addProfessor(ProfessorDTO professorDTO) {
         ProfessorEntities professorEntities = convertProfDTOtoProfessorEntities(professorDTO);
-        for(Long studentIds:professorDTO.getStudentEntities()) {
-            StudentEntities student = admissionRepositories.findById(studentIds).orElseThrow().getStudentEntities();
-            student.addProfessor(professorEntities);
+        if(professorDTO.getStudentEntities()!=null) {
+            for (Long studentIds : professorDTO.getStudentEntities()) {
+                StudentEntities student = admissionRepositories.findById(studentIds).orElseThrow().getStudentEntities();
+                student.addProfessor(professorEntities);
+            }
         }
+
+        if(professorDTO.getSubjectEntities()!=null){
+            for(Long subjectIds:professorDTO.getSubjectEntities()){
+                SubjectEntities subjectEntities = subjectRepositories.findById(subjectIds).orElseThrow();
+                subjectEntities.addProfessor(professorEntities);
+            }
+        }
+
         professorRepositories.save(professorEntities);
 
         return ResponseEntity.ok("The professor was saved my g");
@@ -47,10 +58,16 @@ public class ProfessorServices {
     @Transactional
     public ResponseEntity<?> deleteProfessorById(Long id){
         ProfessorEntities professorEntities = professorRepositories.findById(id).orElseThrow();
-        if (professorEntities.getStudentEntities()!=null)
+        if (professorEntities.getStudentEntities()!=null) {
+            for (StudentEntities student : professorEntities.getStudentEntities())
+                student.getProfessorEntities().remove(professorEntities);
             professorEntities.setStudentEntities(null);
-        if(professorEntities.getSubjectEntities()!=null)
+        }
+        if(professorEntities.getSubjectEntities()!=null) {
+            for (SubjectEntities subject : professorEntities.getSubjectEntities())
+                subject.setProfessor(null);
             professorEntities.setSubjectEntities(null);
+        }
         professorRepositories.delete(professorEntities);
         return ResponseEntity.ok("Professor was deleted...");
     }
@@ -60,6 +77,7 @@ public class ProfessorServices {
         return convertPEntitityToPDTO(professorRepositories.findById(id).orElseThrow());
     }
 
+    @Transactional
     public ProfessorEntities convertProfDTOtoProfessorEntities(ProfessorDTO professorDTO){
         ProfessorEntities professorEntities = new ProfessorEntities();
         professorEntities.setName(professorDTO.getName());
@@ -70,6 +88,7 @@ public class ProfessorServices {
         return professorEntities;
     }
 
+    @Transactional
     public ProfessorDTO convertPEntitityToPDTO(ProfessorEntities professorEntities){
         ProfessorDTO professorDTO = new ProfessorDTO();
         professorDTO.setId(professorEntities.getId());
