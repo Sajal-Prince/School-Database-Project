@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @AllArgsConstructor
@@ -24,14 +25,15 @@ public class StudentEntities {
     private String name;
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-    private List<ProfessorEntities> professorEntities;
+    private Set<ProfessorEntities> professorEntities;
 
     @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-    private List<SubjectEntities> subjectEntities;
+    private Set<SubjectEntities> subjectEntities;
 
     public void addSubjects(SubjectEntities subjectEntities){
         if(this.subjectEntities == null)
-            this.subjectEntities = new ArrayList<>();
+            this.subjectEntities = new HashSet<>() {
+        };
         this.subjectEntities.add(subjectEntities);
 
         if(subjectEntities.getStudentEntities()==null)
@@ -41,11 +43,11 @@ public class StudentEntities {
 
     public void addProfessor(ProfessorEntities professorEntities){
         if(this.professorEntities == null)
-            this.professorEntities = new ArrayList<>();
+            this.professorEntities = new HashSet<>();
         this.professorEntities.add(professorEntities);
 
         if(professorEntities.getStudentEntities()==null)
-            professorEntities.setStudentEntities(new ArrayList<>());
+            professorEntities.setStudentEntities(new HashSet<>());
         professorEntities.getStudentEntities().add(this);
     }
 }

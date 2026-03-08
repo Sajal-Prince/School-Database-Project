@@ -4,6 +4,9 @@ import com.example.springjpaproject1.DTO.ProfessorDTO;
 import com.example.springjpaproject1.entities.ProfessorEntities;
 import com.example.springjpaproject1.entities.StudentEntities;
 import com.example.springjpaproject1.entities.SubjectEntities;
+import com.example.springjpaproject1.exceptions.ProfessorNotFoundException;
+import com.example.springjpaproject1.exceptions.StudentNotFoundException;
+import com.example.springjpaproject1.exceptions.SubjectNotFoundException;
 import com.example.springjpaproject1.repositories.AdmissionRepositories;
 import com.example.springjpaproject1.repositories.ProfessorRepositories;
 import com.example.springjpaproject1.repositories.SubjectRepositories;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +34,7 @@ public class ProfessorServices {
 
     @Transactional
     public List<ProfessorDTO> getProfessors(){
-        return professorRepositories.findAll().stream().map(this::convertPEntitityToPDTO).collect(Collectors.toCollection(ArrayList::new));
+        return professorRepositories.findAllOptimized().stream().map(this::convertPEntitityToPDTO).collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Transactional
@@ -38,14 +42,14 @@ public class ProfessorServices {
         ProfessorEntities professorEntities = convertProfDTOtoProfessorEntities(professorDTO);
         if(professorDTO.getStudentEntities()!=null) {
             for (Long studentIds : professorDTO.getStudentEntities()) {
-                StudentEntities student = admissionRepositories.findById(studentIds).orElseThrow().getStudentEntities();
+                StudentEntities student = admissionRepositories.findById(studentIds).orElseThrow(() -> new StudentNotFoundException("Student with that id not found")).getStudentEntities();
                 student.addProfessor(professorEntities);
             }
         }
 
         if(professorDTO.getSubjectEntities()!=null){
             for(Long subjectIds:professorDTO.getSubjectEntities()){
-                SubjectEntities subjectEntities = subjectRepositories.findById(subjectIds).orElseThrow();
+                SubjectEntities subjectEntities = subjectRepositories.findById(subjectIds).orElseThrow(() -> new StudentNotFoundException("Student not found with that id"));
                 subjectEntities.addProfessor(professorEntities);
             }
         }
@@ -57,7 +61,7 @@ public class ProfessorServices {
 
     @Transactional
     public ResponseEntity<?> deleteProfessorById(Long id){
-        ProfessorEntities professorEntities = professorRepositories.findById(id).orElseThrow();
+        ProfessorEntities professorEntities = professorRepositories.findById(id).orElseThrow(() -> new ProfessorNotFoundException("Professor with that id not found"));
         if (professorEntities.getStudentEntities()!=null) {
             for (StudentEntities student : professorEntities.getStudentEntities())
                 student.getProfessorEntities().remove(professorEntities);
@@ -74,7 +78,7 @@ public class ProfessorServices {
 
     @Transactional
     public ProfessorDTO getProfessorEntitityById(Long id){
-        return convertPEntitityToPDTO(professorRepositories.findById(id).orElseThrow());
+        return convertPEntitityToPDTO(professorRepositories.findById(id).orElseThrow(() -> new ProfessorNotFoundException("Professor with that id not found")));
     }
 
     @Transactional
@@ -82,9 +86,22 @@ public class ProfessorServices {
         ProfessorEntities professorEntities = new ProfessorEntities();
         professorEntities.setName(professorDTO.getName());
         if(professorDTO.getStudentEntities() != null)
-            professorEntities.setStudentEntities(professorDTO.getStudentEntities().stream().map(id -> admissionRepositories.findById(id).orElseThrow().getStudentEntities()).collect(Collectors.toCollection(ArrayList::new)));
+            professorEntities.setStudentEntities(professorDTO
+                            .getStudentEntities()
+                            .stream()
+                            .map(id -> admissionRepositories
+                                    .findById(id)
+                                    .orElseThrow(() -> new StudentNotFoundException("Student with that id not found"))
+                                    .getStudentEntities())
+                            .collect(Collectors.toCollection(HashSet::new)));
         if(professorDTO.getSubjectEntities() != null)
-            professorEntities.setSubjectEntities(professorDTO.getSubjectEntities().stream().map(id -> subjectRepositories.findById(id).orElseThrow()).collect(Collectors.toCollection(ArrayList::new)));
+            professorEntities.setSubjectEntities(professorDTO
+                    .getSubjectEntities()
+                    .stream()
+                    .map(id -> subjectRepositories
+                            .findById(id)
+                            .orElseThrow(() -> new SubjectNotFoundException("Subject with that id not found")))
+                    .collect(Collectors.toCollection(HashSet::new)));
         return professorEntities;
     }
 

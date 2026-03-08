@@ -19,6 +19,6 @@ public class AdmissionRecord {
 
     private Integer fees;
 
-    @OneToOne(orphanRemoval = true,cascade = CascadeType.ALL,fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private StudentEntities studentEntities;
 }

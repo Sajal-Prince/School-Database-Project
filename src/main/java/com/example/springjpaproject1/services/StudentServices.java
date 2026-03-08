@@ -5,6 +5,7 @@ import com.example.springjpaproject1.entities.AdmissionRecord;
 import com.example.springjpaproject1.entities.ProfessorEntities;
 import com.example.springjpaproject1.entities.StudentEntities;
 import com.example.springjpaproject1.entities.SubjectEntities;
+import com.example.springjpaproject1.exceptions.StudentNotFoundException;
 import com.example.springjpaproject1.repositories.AdmissionRepositories;
 import com.example.springjpaproject1.repositories.ProfessorRepositories;
 import com.example.springjpaproject1.repositories.StudentRepositories;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +40,7 @@ public class StudentServices {
 
     @Transactional
     public ResponseEntity<?> removeAdmission(Long id){
-        AdmissionRecord admissionRecord = admissionRepositories.findById(id).orElseThrow();
+        AdmissionRecord admissionRecord = admissionRepositories.findById(id).orElseThrow(() -> new StudentNotFoundException("Student with that id not found"));
         StudentEntities student = admissionRecord.getStudentEntities();
         if(student != null){
             student.getSubjectEntities().clear();
@@ -51,13 +53,13 @@ public class StudentServices {
 
     @Transactional
     public StudentDTO getStudentbyID(Long id){
-        AdmissionRecord admissionRecord = admissionRepositories.findById(id).orElseThrow();
+        AdmissionRecord admissionRecord = admissionRepositories.findById(id).orElseThrow(() -> new StudentNotFoundException("Student not found with the given id..."));
 
         return convertToStudentDTO(admissionRecord);
     }
 
     public List<StudentDTO> getAllStudents(){
-        return admissionRepositories.findAll().stream().map(this::convertToStudentDTO).collect(Collectors.toCollection(ArrayList::new));
+        return admissionRepositories.findAllWithFullDetails().stream().map(this::convertToStudentDTO).collect(Collectors.toList());
     }
 
     public StudentDTO convertToStudentDTO(AdmissionRecord admissionRecord){
@@ -65,8 +67,18 @@ public class StudentServices {
         student.setId(admissionRecord.getId());
         student.setFees(admissionRecord.getFees());
         student.setName(admissionRecord.getStudentEntities().getName());
-        student.setProfessorEntities(admissionRecord.getStudentEntities().getProfessorEntities().stream().map(ProfessorEntities::getId).collect(Collectors.toCollection(ArrayList::new)));
-        student.setSubjectEntities(admissionRecord.getStudentEntities().getSubjectEntities().stream().map(SubjectEntities::getId).collect(Collectors.toCollection(ArrayList::new)));
+        student.setProfessorEntities(admissionRecord.getStudentEntities()
+                .getProfessorEntities()
+                .stream()
+                .map(ProfessorEntities::getId)
+                .collect(Collectors
+                        .toCollection(ArrayList::new)));
+        student.setSubjectEntities(admissionRecord.getStudentEntities()
+                .getSubjectEntities()
+                .stream()
+                .map(SubjectEntities::getId)
+                .collect(Collectors
+                        .toCollection(ArrayList::new)));
 
 
         return student;
@@ -78,9 +90,9 @@ public class StudentServices {
         StudentEntities studentEntities = new StudentEntities();
         studentEntities.setName(studentDTO.getName());
         if(studentDTO.getSubjectEntities()!=null)
-            studentEntities.setSubjectEntities(subjectRepositories.findAllById(studentDTO.getSubjectEntities()));
+            studentEntities.setSubjectEntities(new HashSet<>(subjectRepositories.findAllById(studentDTO.getSubjectEntities())));
         if(studentDTO.getProfessorEntities()!=null)
-            studentEntities.setProfessorEntities(professorRepositories.findAllById(studentDTO.getProfessorEntities()));
+            studentEntities.setProfessorEntities(new HashSet<>(professorRepositories.findAllById(studentDTO.getProfessorEntities())));
 
         studentRepositories.save(studentEntities);
 

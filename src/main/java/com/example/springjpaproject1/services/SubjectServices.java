@@ -5,6 +5,8 @@ import com.example.springjpaproject1.DTO.SubjectDTO;
 import com.example.springjpaproject1.entities.ProfessorEntities;
 import com.example.springjpaproject1.entities.StudentEntities;
 import com.example.springjpaproject1.entities.SubjectEntities;
+import com.example.springjpaproject1.exceptions.ProfessorNotFoundException;
+import com.example.springjpaproject1.exceptions.SubjectNotFoundException;
 import com.example.springjpaproject1.repositories.ProfessorRepositories;
 import com.example.springjpaproject1.repositories.StudentRepositories;
 import com.example.springjpaproject1.repositories.SubjectRepositories;
@@ -30,18 +32,18 @@ public class SubjectServices {
     }
 
     public List<SubjectDTO> getSubjects() {
-        return subjectRepositories.findAll().stream().map(this::convertSubEntityToSubDTO).collect(Collectors.toCollection(ArrayList::new));
+        return subjectRepositories.findAllSubjectsFull().stream().map(this::convertSubEntityToSubDTO).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public SubjectDTO getSubjectById(Long id) {
-        return convertSubEntityToSubDTO(subjectRepositories.findById(id).orElseThrow());
+        return convertSubEntityToSubDTO(subjectRepositories.findById(id).orElseThrow(() -> new SubjectNotFoundException("Subject with that id not found")));
     }
 
     @Transactional
     public ResponseEntity<?> addSubject(SubjectDTO subjectDTO){
         SubjectEntities subject = convertSubDTOtoSubEntities(subjectDTO);
         if(subject.getProfessor()!=null) {
-            ProfessorEntities professorEntities = professorRepositories.findById(subjectDTO.getProfessorId()).orElseThrow();
+            ProfessorEntities professorEntities = professorRepositories.findById(subjectDTO.getProfessorId()).orElseThrow(() -> new ProfessorNotFoundException("Professor with that id not found"));
             professorEntities.addSubject(subject);
         }
 
@@ -58,7 +60,7 @@ public class SubjectServices {
 
     @Transactional
     public ResponseEntity<?> deleteSubjectById(Long id) {
-        SubjectEntities subjectEntities = subjectRepositories.findById(id).orElseThrow();
+        SubjectEntities subjectEntities = subjectRepositories.findById(id).orElseThrow(() -> new SubjectNotFoundException("Subject with that id not found"));
         if(subjectEntities.getProfessor()!=null) {
             subjectEntities.getProfessor().getSubjectEntities().remove(subjectEntities);
             subjectEntities.setProfessor(null);
@@ -72,7 +74,6 @@ public class SubjectServices {
         return ResponseEntity.ok("The subject was deleted");
     }
 
-    @Transactional
     public SubjectDTO convertSubEntityToSubDTO(SubjectEntities subjectEntities){
         SubjectDTO subjectDTO = new SubjectDTO();
         subjectDTO.setId(subjectEntities.getId());
@@ -84,13 +85,12 @@ public class SubjectServices {
         return subjectDTO;
     }
 
-    @Transactional
     public SubjectEntities convertSubDTOtoSubEntities(SubjectDTO subjectDTO){
         SubjectEntities subjectEntities = new SubjectEntities();
         subjectEntities.setId(subjectDTO.getId());
         subjectEntities.setName(subjectDTO.getName());
         if(subjectDTO.getProfessorId()!=null)
-            subjectEntities.setProfessor(professorRepositories.findById(subjectDTO.getProfessorId()).orElseThrow());
+            subjectEntities.setProfessor(professorRepositories.findById(subjectDTO.getProfessorId()).orElseThrow(()->new ProfessorNotFoundException("Prfessor with that id not found")));
         if(subjectDTO.getStudentEntities()!=null)
             subjectEntities.setStudentEntities(studentRepositories.findAllById(subjectDTO.getStudentEntities()));
         return subjectEntities;

@@ -3,7 +3,7 @@ package com.example.springjpaproject1.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @NoArgsConstructor
@@ -20,11 +20,11 @@ public class ProfessorEntities {
     private String Name;
 
     @ManyToMany(mappedBy = "professorEntities") //Inverse Side
-    private List<StudentEntities> studentEntities;
+    private Set<StudentEntities> studentEntities;
 
 
     @OneToMany(mappedBy = "professor",cascade = {CascadeType.PERSIST, CascadeType.MERGE})  //Inverse side
-    private List<SubjectEntities> subjectEntities;
+    private Set<SubjectEntities> subjectEntities;
 
     public void addSubject(SubjectEntities subjectEntities){
         this.subjectEntities.add(subjectEntities);

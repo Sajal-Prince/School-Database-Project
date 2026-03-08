@@ -2,6 +2,7 @@ package com.example.springjpaproject1.controllers;
 
 import com.example.springjpaproject1.DTO.ProfessorDTO;
 import com.example.springjpaproject1.services.ProfessorServices;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +17,7 @@ public class ProfessorController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addProfessors(@RequestBody ProfessorDTO professorDTO){
+    public ResponseEntity<?> addProfessors(@RequestBody @Valid ProfessorDTO professorDTO){
         return professorServices.addProfessor(professorDTO);
     }
 
