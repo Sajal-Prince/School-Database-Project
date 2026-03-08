@@ -2,7 +2,6 @@ package com.example.springjpaproject1.controllers;
 
 import com.example.springjpaproject1.DTO.SubjectDTO;
 import com.example.springjpaproject1.services.SubjectServices;
-import org.hibernate.sql.Delete;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,5 +37,8 @@ public class SubjectController {
     public ResponseEntity<?> deleteSubjectById(@PathVariable Long id){
         return subjectServices.deleteSubjectById(id);
     }
+
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<?> editSubjectEntity(@PathVariable Long id,@RequestBody SubjectDTO subjectDTO){ return subjectServices.editSubjectEntity(id,subjectDTO); }
 
 }

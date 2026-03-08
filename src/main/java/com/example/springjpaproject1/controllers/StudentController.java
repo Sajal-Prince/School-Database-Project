@@ -34,4 +34,7 @@ public class StudentController {
     public List<StudentDTO> getAllStudents(){
         return studentServices.getAllStudents();
     }
+
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<?> editStudentById(@PathVariable Long id,@RequestBody StudentDTO studentDTO){ return studentServices.editStudentById(id,studentDTO); }
 }

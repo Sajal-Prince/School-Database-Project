@@ -11,9 +11,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/professor")
 public class ProfessorController {
-    ProfessorServices professorServices;
+    private final ProfessorServices professorServices;
     public ProfessorController(ProfessorServices professorServices){
-        this.professorServices=professorServices;
+        this.professorServices = professorServices;
     }
 
     @PostMapping("/add")
@@ -34,5 +34,10 @@ public class ProfessorController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteProfessorById(@PathVariable Long id){
         return professorServices.deleteProfessorById(id);
+    }
+
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<?> putProfessorById(@PathVariable Long id,@RequestBody ProfessorDTO professorDTO){
+        return professorServices.editProfessorById(id, professorDTO);
     }
 }

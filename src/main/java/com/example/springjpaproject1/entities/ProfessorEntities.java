@@ -11,7 +11,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Table(name = "professor")
-public class ProfessorEntities {
+public class ProfessorEntities extends AuditEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
